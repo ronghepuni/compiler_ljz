@@ -14,3 +14,5 @@ void neg_idx_except() {
     printf("negative index exception\n");
     exit(0);
 }
+
+
