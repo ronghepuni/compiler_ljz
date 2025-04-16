@@ -11,6 +11,9 @@
 #include <map>
 #include <memory>
 
+
+
+
 class Scope {
   public:
     // enter a new scope
@@ -106,11 +109,8 @@ class CminusfBuilder : public ASTVisitor {
     std::unique_ptr<Module> module;
 
     struct {
-        // whether require lvalue
-        bool require_lvalue = false;
-        // function that is being built
         Function *func = nullptr;
-        // detect scope pre-enter (for elegance only)
-        bool pre_enter_scope = false;
+        Value* val=nullptr;
+        bool is_lval=false;
     } context;
 };
