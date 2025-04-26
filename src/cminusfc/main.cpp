@@ -1,6 +1,13 @@
+
 #include "Module.hpp"
+#include "PassManager.hpp"
 #include "ast.hpp"
 #include "cminusf_builder.hpp"
+#include "PassManager.hpp"
+#include "DeadCode.hpp"
+#include "Mem2Reg.hpp"
+#include "LoopDetection.hpp"
+#include "LICM.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -17,6 +24,8 @@ struct Config {
 
     bool emitast{false};
     bool emitllvm{false};
+    // optization conifg
+    bool mem2reg{false};
 
     Config(int argc, char **argv) : argc(argc), argv(argv) {
         parse_cmd_line();
@@ -49,15 +58,21 @@ int main(int argc, char **argv) {
         ast.run_visitor(builder);
         m = builder.getModule();
 
+        PassManager PM(m.get());
+        // optimization 
+        if(config.mem2reg) {
+            PM.add_pass<Mem2Reg>();
+            PM.add_pass<DeadCode>();
+        }
+        PM.run();
+
         std::ofstream output_stream(config.output_file);
         if (config.emitllvm) {
             auto abs_path = std::filesystem::canonical(config.input_file);
             output_stream << "; ModuleID = 'cminus'\n";
             output_stream << "source_filename = " << abs_path << "\n\n";
             output_stream << m->print();
-        }
-
-        // TODO: lab3 lab4 (IR optimization or codegen)
+        } 
     }
 
     return 0;
@@ -79,6 +94,8 @@ void Config::parse_cmd_line() {
             emitast = true;
         } else if (argv[i] == "-emit-llvm"s) {
             emitllvm = true;
+        } else if (argv[i] == "-mem2reg"s) {
+            mem2reg = true;
         } else {
             if (input_file.empty()) {
                 input_file = argv[i];
@@ -100,12 +117,16 @@ void Config::check() {
     }
     if (output_file.empty()) {
         output_file = input_file.stem();
+        if (emitllvm) {
+            output_file.replace_extension(".ll");
+        }
     }
 }
 
 void Config::print_help() const {
     std::cout << "Usage: " << exe_name
-              << " [-h|--help] [-o <target-file>] [-mem2reg] [-emit-llvm] [-S] "
+              << " [-h|--help] [-o <target-file>] [-emit-llvm] [-S] [-dump-json]"
+                 "[-mem2reg] [-licm]"
                  "<input-file>"
               << std::endl;
     exit(0);
