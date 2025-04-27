@@ -7,3 +7,5 @@ add_library(
     ConstPropagation.cpp
     FunctionInline.cpp
 )
+
+target_link_libraries(passes common)
