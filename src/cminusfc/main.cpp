@@ -6,8 +6,8 @@
 #include "PassManager.hpp"
 #include "DeadCode.hpp"
 #include "Mem2Reg.hpp"
-#include "LoopDetection.hpp"
-#include "LICM.hpp"
+#include "ConstPropagation.hpp"
+#include "FunctionInline.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -24,8 +24,9 @@ struct Config {
 
     bool emitast{false};
     bool emitllvm{false};
-    // optization conifg
-    bool mem2reg{false};
+    // optization config
+    bool const_prop{false};
+    bool dce{false};
 
     Config(int argc, char **argv) : argc(argc), argv(argv) {
         parse_cmd_line();
@@ -60,8 +61,12 @@ int main(int argc, char **argv) {
 
         PassManager PM(m.get());
         // optimization 
-        if(config.mem2reg) {
+        if(config.dce) {
             PM.add_pass<Mem2Reg>();
+            PM.add_pass<DeadCode>();
+        }
+        if(config.const_prop) {
+            PM.add_pass<ConstPropagation>();
             PM.add_pass<DeadCode>();
         }
         PM.run();
@@ -94,8 +99,10 @@ void Config::parse_cmd_line() {
             emitast = true;
         } else if (argv[i] == "-emit-llvm"s) {
             emitllvm = true;
-        } else if (argv[i] == "-mem2reg"s) {
-            mem2reg = true;
+        } else if (argv[i] == "-dce"s) {
+            dce = true;
+        } else if (argv[i] == "-const-prop"s) {
+            const_prop = true;
         } else {
             if (input_file.empty()) {
                 input_file = argv[i];
@@ -115,6 +122,9 @@ void Config::check() {
     if (input_file.extension() != ".cminus") {
         print_err("file format not recognized");
     }
+    if (const_prop && not dce) {
+        print_err("const-prop pass need dce pass");
+    }
     if (output_file.empty()) {
         output_file = input_file.stem();
         if (emitllvm) {
@@ -126,7 +136,7 @@ void Config::check() {
 void Config::print_help() const {
     std::cout << "Usage: " << exe_name
               << " [-h|--help] [-o <target-file>] [-emit-llvm] [-S] [-dump-json]"
-                 "[-mem2reg] [-licm]"
+                 "[-const-prop] [-dce]"
                  "<input-file>"
               << std::endl;
     exit(0);

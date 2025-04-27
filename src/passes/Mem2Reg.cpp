@@ -24,13 +24,6 @@ void Mem2Reg::run() {
         }
         // 后续 DeadCode 将移除冗余的局部变量的分配空间
     }
-    // for(auto &f : m_->get_functions()) {
-    //     if(f.is_declaration()) 
-    //         continue;
-    //     func_ = &f;
-    //     dominators_->dump_cfg(func_);
-    //     dominators_->dump_dominator_tree(func_);
-    // }
 }
 
 void Mem2Reg::generate_phi() {
@@ -82,7 +75,6 @@ void Mem2Reg::generate_phi() {
 }
 
 void Mem2Reg::rename(BasicBlock *bb) {
-    // TODO
     // 步骤一：将 phi 指令作为 lval 的最新定值，lval 即是为局部变量
     // alloca出的地址空间 步骤二：用 lval 最新的定值替代对应的load指令
     // 步骤三：将store 指令的 rval，也即被存入内存的值，作为 lval 的最新定值

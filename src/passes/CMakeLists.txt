@@ -3,8 +3,7 @@ add_library(
     DeadCode.cpp
     Dominators.cpp
     FuncInfo.cpp
-    LoopDetection.cpp
-    LICM.cpp
     Mem2Reg.cpp
+    ConstPropagation.cpp
     FunctionInline.cpp
 )

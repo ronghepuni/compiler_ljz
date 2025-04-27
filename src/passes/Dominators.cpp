@@ -57,7 +57,7 @@ void Dominators::dfs(BasicBlock *bb, std::set<BasicBlock *> &visited) {
 }
 
 void Dominators::create_idom(Function *f) {
-    // TODO 分析得到 f 中各个基本块的 idom
+    // 分析得到 f 中各个基本块的 idom
     idom_[f->get_entry_block()] = f->get_entry_block();
     bool changed;
     do {
@@ -87,7 +87,7 @@ void Dominators::create_idom(Function *f) {
 }
 
 void Dominators::create_dominance_frontier(Function *f) {
-    // TODO 分析得到 f 中各个基本块的支配边界集合
+    // 分析得到 f 中各个基本块的支配边界集合
     for (auto &bb1 : f->get_basic_blocks()) {
         auto bb = &bb1;
         if (bb->get_pre_basic_blocks().size() >= 2) {
@@ -104,7 +104,7 @@ void Dominators::create_dominance_frontier(Function *f) {
 }
 
 void Dominators::create_dom_tree_succ(Function *f) {
-    // TODO 分析得到 f 中各个基本块的支配树后继
+    // 分析得到 f 中各个基本块的支配树后继
     for (auto &bb1 : f->get_basic_blocks()) {
         auto bb = &bb1;
         if (get_idom(bb) != nullptr && get_idom(bb) != bb) {
