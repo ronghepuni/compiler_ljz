@@ -27,6 +27,7 @@ struct Config {
     // optization config
     bool const_prop{false};
     bool dce{false};
+    bool func_inline{false};
 
     Config(int argc, char **argv) : argc(argc), argv(argv) {
         parse_cmd_line();
@@ -62,10 +63,17 @@ int main(int argc, char **argv) {
         PassManager PM(m.get());
         // optimization 
         if(config.dce) {
-            PM.add_pass<Mem2Reg>();
             PM.add_pass<DeadCode>();
         }
+
+        if(config.func_inline) {
+            PM.add_pass<FunctionInline>();
+            PM.add_pass<DeadCode>();
+        }
+
         if(config.const_prop) {
+            PM.add_pass<Mem2Reg>();
+            PM.add_pass<DeadCode>();
             PM.add_pass<ConstPropagation>();
             PM.add_pass<DeadCode>();
         }
@@ -103,6 +111,8 @@ void Config::parse_cmd_line() {
             dce = true;
         } else if (argv[i] == "-const-prop"s) {
             const_prop = true;
+        } else if (argv[i] == "-func-inline"s) {
+            func_inline = true;
         } else {
             if (input_file.empty()) {
                 input_file = argv[i];
@@ -124,6 +134,9 @@ void Config::check() {
     }
     if (const_prop && not dce) {
         print_err("const-prop pass need dce pass");
+    }
+    if (func_inline && not dce) {
+        print_err("function inline pass need dce pass");
     }
     if (output_file.empty()) {
         output_file = input_file.stem();
