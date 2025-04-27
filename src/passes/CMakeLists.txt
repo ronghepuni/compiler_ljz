@@ -6,4 +6,5 @@ add_library(
     LoopDetection.cpp
     LICM.cpp
     Mem2Reg.cpp
+    FunctionInline.cpp
 )
