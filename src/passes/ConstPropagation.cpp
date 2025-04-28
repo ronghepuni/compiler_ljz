@@ -145,6 +145,7 @@ void ConstPropagation::run() {
                     }
                 }
                 // TODO: fold other type of expression
+                throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
             }
             globalvar_def.clear();
             for (auto instr : wait_delete) {
@@ -157,6 +158,7 @@ void ConstPropagation::run() {
         for (auto &bb : func.get_basic_blocks()) {
             builder->set_insert_point(&bb);
             // TODO: check if conditional branch's condition is constant
+            throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
         }
         for (auto bb : delete_bb) {
             // delete unuseful basic block
@@ -169,6 +171,7 @@ void ConstPropagation::run() {
 
 bool ConstPropagation::is_entry(BasicBlock *bb) {
     // TODO
+    throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
     return false;
 }
 

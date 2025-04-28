@@ -39,6 +39,7 @@ void DeadCode::mark(Function *func) {
     work_list.clear();
     marked.clear();
     // TODO: 标记无用变量
+    throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
 }
 
 void DeadCode::mark(Instruction *ins) {
@@ -64,7 +65,7 @@ bool DeadCode::sweep(Function *func) {
     // 4. 注意：删除指令时，需要先删除操作数的引用，然后再删除指令本身
     // 5. 删除指令时，需要注意指令的顺序，不能删除正在遍历的指令
     std::unordered_set<Instruction *> wait_del{};
-
+    throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
     return not wait_del.empty(); // changed
 }
 
@@ -75,6 +76,7 @@ bool DeadCode::is_critical(Instruction *ins) {
     // 2. 如果是无用的分支指令，则无用
     // 3. 如果是无用的返回指令，则无用
     // 4. 如果是无用的存储指令，则无用
+    throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
     return false;
 }
 
