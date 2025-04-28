@@ -4,6 +4,7 @@
 #include "BasicBlock.hpp"
 #include "Instruction.hpp"
 #include "Value.hpp"
+#include "logging.hpp"
 #include <cassert>
 #include <utility>
 #include <vector>
@@ -11,6 +12,7 @@
 void FunctionInline::run() { inline_all_functions(); }
 
 void FunctionInline::inline_all_functions() {
+    
     std::set<Function *> recursive_func;
     for (auto &func : m_->get_functions()) {
         for (auto &bb : func.get_basic_blocks()) {
@@ -44,6 +46,9 @@ void FunctionInline::inline_all_functions() {
                     if (outside_func.find(func1->get_name()) !=
                         outside_func.end())
                         continue;
+                    if(func1->get_basic_blocks().size() >=6){
+                        continue;
+                    }
                     inline_function(call, func1);
                     goto a1;
                 }
@@ -77,7 +82,16 @@ void FunctionInline::inline_function(Instruction *call, Function *origin) {
             if (inst.is_phi()) {
                 ;
             }
-            Instruction *inst_new = inst.clone(bb_new);
+            
+            Instruction *inst_new ;
+            if (inst.is_call()) {
+                auto call = static_cast<CallInst *>(&inst);
+                auto func = static_cast<Function *>(call->get_operand(0));
+                // 
+                inst_new = new CallInst(func, {call->get_operands().begin() + 1, call->get_operands().end()}, bb_new);
+            }
+            else inst_new = inst.clone(bb_new);
+            // 
             if (inst.is_phi())
                 bb_new->add_instr_begin(inst_new);
             v_map.insert(std::make_pair(static_cast<Value *>(&inst),
@@ -104,6 +118,7 @@ void FunctionInline::inline_function(Instruction *call, Function *origin) {
     bool is_terminated = false;
     auto bb_new = BasicBlock::create(call_func->get_parent(), "", call_func);
     if (!origin->get_return_type()->is_void_type()) {
+        // 
         if (ret_list.size() == 1) {
             auto ret = ret_list.front();
             ret_val = ret->get_operand(0);
@@ -133,16 +148,27 @@ void FunctionInline::inline_function(Instruction *call, Function *origin) {
         }
     }
     std::vector<Instruction *> del_list;
+    // 
+    // 
+    BranchInst* br = nullptr;
     for (auto &inst : call_bb->get_instructions()) {
+    // 
         if (!is_terminated) {
             // 如果前一个基本块还没遇到这条跳转指令
             if (&(inst) == call) {
-                auto br = BranchInst::create_br(bb_list.front(), call_bb);
+                
+                
+                br = BranchInst::create_br(bb_list.front(), call_bb);
                 // bb_1->add_instruction(br);
-                call_bb->insert_before(&inst, br);
+                // call_bb->insert_before(&inst, br);
                 // inst.replace_all_use_with(br);
                 if (!origin->get_return_type()->is_void_type()) {
+                    // 
+                    // auto temp = call->get_use_list().begin();
                     call->replace_all_use_with(ret_val);
+                    // 
+                    // 
+
                 }
                 // call_bb->remove_instr(call);
                 // del_list.push_back(call);
@@ -150,16 +176,29 @@ void FunctionInline::inline_function(Instruction *call, Function *origin) {
             }
         } else {
             // call_bb->remove_instr(&inst);
+            if(dynamic_cast<BranchInst*>(&inst) == br){
+                continue;
+            }
             del_list.push_back(&inst);
         }
     }
+    // 
     call_bb->remove_instr(call);
     origin->remove_use(call, 0);
+    // 
     for (auto inst : del_list) {
+        
         call_bb->remove_instr(inst);
         bb_new->add_instruction(inst);
+        inst->set_parent(bb_new);
     }
+
+    // 
+    // br->set_parent(call_bb);
+    // 
     origin->reset_bbs();
+    // 
     call_func->reset_bbs();
+    
     return;
 }
