@@ -149,7 +149,7 @@ void ConstPropagation::run() {
             }
             globalvar_def.clear();
             for (auto instr : wait_delete) {
-                bb.remove_instr(instr);
+                bb.erase_instr(instr);
             }
         }
     }
@@ -161,8 +161,6 @@ void ConstPropagation::run() {
             throw std::runtime_error("Lab2: 你有一个TODO需要完成！");
         }
         for (auto bb : delete_bb) {
-            // delete unuseful basic block
-            // func.remove(bb);
             clear_blocks_recs(bb);
         }
         delete_bb.clear();
@@ -186,6 +184,7 @@ void ConstPropagation::clear_blocks_recs(BasicBlock *start_bb) {
             func->remove(start_bb);
             auto succ_bb = start_bb->get_succ_basic_blocks();
             for (auto each_succ_bb : succ_bb) {
+                std::vector<Instruction*> del_inst;
                 for (auto &instr1 : each_succ_bb->get_instructions()) {
                     auto instr = &instr1;
                     if (instr->is_phi()) {
@@ -204,11 +203,12 @@ void ConstPropagation::clear_blocks_recs(BasicBlock *start_bb) {
                         int operands_num_phi = instr->get_num_operand();
                         if (operands_num_phi == 2) {
                             auto value = instr->get_operand(0);
-                            instr->replace_all_use_with(value);
-                            each_succ_bb->remove_instr(instr);
+                            instr->replace_all_use_with(cast_constantint(value));
+                            del_inst.push_back(instr);
                         }
                     }
                 }
+                for(auto instr : del_inst) each_succ_bb->erase_instr(instr);
                 clear_blocks_recs(each_succ_bb);
             }
         }
