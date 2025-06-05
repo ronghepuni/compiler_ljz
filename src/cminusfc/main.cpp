@@ -1,13 +1,11 @@
-
+#include "ConstPropagation.hpp"
+#include "DeadCode.hpp"
+#include "FunctionInline.hpp"
+#include "Mem2Reg.hpp"
 #include "Module.hpp"
 #include "PassManager.hpp"
 #include "ast.hpp"
 #include "cminusf_builder.hpp"
-#include "PassManager.hpp"
-#include "DeadCode.hpp"
-#include "Mem2Reg.hpp"
-#include "ConstPropagation.hpp"
-#include "FunctionInline.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -26,7 +24,7 @@ struct Config {
     bool emitllvm{false};
     // optization config
     bool const_prop{false};
-    bool dce{false};
+    bool dce{true};
     bool func_inline{false};
 
     Config(int argc, char **argv) : argc(argc), argv(argv) {
@@ -61,17 +59,17 @@ int main(int argc, char **argv) {
         m = builder.getModule();
 
         PassManager PM(m.get());
-        // optimization 
-        if(config.dce) {
+        // optimization
+        if (config.dce) {
             PM.add_pass<DeadCode>();
         }
 
-        if(config.func_inline) {
+        if (config.func_inline) {
             PM.add_pass<FunctionInline>();
             PM.add_pass<DeadCode>();
         }
 
-        if(config.const_prop) {
+        if (config.const_prop) {
             PM.add_pass<Mem2Reg>();
             PM.add_pass<DeadCode>();
             PM.add_pass<ConstPropagation>();
@@ -85,7 +83,7 @@ int main(int argc, char **argv) {
             output_stream << "; ModuleID = 'cminus'\n";
             output_stream << "source_filename = " << abs_path << "\n\n";
             output_stream << m->print();
-        } 
+        }
     }
 
     return 0;
@@ -147,11 +145,12 @@ void Config::check() {
 }
 
 void Config::print_help() const {
-    std::cout << "Usage: " << exe_name
-              << " [-h|--help] [-o <target-file>] [-emit-llvm] [-S] [-dump-json]"
-                 "[-const-prop] [-dce]"
-                 "<input-file>"
-              << std::endl;
+    std::cout
+        << "Usage: " << exe_name
+        << " [-h|--help] [-o <target-file>] [-emit-llvm] [-S] [-dump-json]"
+           "[-const-prop] [-dce]"
+           "<input-file>"
+        << std::endl;
     exit(0);
 }
 
